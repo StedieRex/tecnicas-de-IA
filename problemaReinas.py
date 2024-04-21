@@ -1,29 +1,16 @@
-# tablero = [0, 0, 0, 0, 0, 0, 0, 0] es
-# reina = 0
-# escribiendo normal
-# def funcionSucesor(tablero):
-class Node:
-    def __init__(self, data):
-        self.data = data
-        self.next = None
-
-    def __str__(self):
-        return str(self.data)
-    def __repr__(self):
-        return str(self.data)
-    def __eq__(self, other):
-        return self.data == other.data
-
 def comprobacionCamino(estado:list,iu:int,reina:int): # iu = indiceUltimaReinaColocada
     """
     Esta función toma un estado y un camino
 
     Parámetros:
     estado (Nodo): Estado actual
-    camino (Lista): Lista de estados
+
+    estos 2 parametros son las coordenadas de la reina que se acaba de colocar
+    iu (int): indice de la ultima reina colocada
+    reina (int): reina a colocar
 
     Devuelve:
-    bool: True si el estado es válido, False si no
+    bool: True si la reina no se enfrenta en diagonal, False si no
     """
     # ciclo por cada reina
         # ciclo por cada reina
@@ -35,16 +22,12 @@ def comprobacionCamino(estado:list,iu:int,reina:int): # iu = indiceUltimaReinaCo
         i=estado.index(e) # i = indice
         if e == 0:
             continue
-        if (i+1-e)==(iu+1-reina) or (i+1+e)==(iu+1+reina):
+        if (i+1-e)==(iu+1-reina) or (i+1+e)==(iu+1+reina):# se le suma 1 a los indices para que no empiecen en 0
             return False
         
     return True
         
 def sucesor(estado: tuple, pv:bool) -> list:
-    reinasDesocupadas = [2,3,4,5,6,7,8]
-    for i in estado:
-        if i in reinasDesocupadas:
-            reinasDesocupadas.remove(i)
     """
     Esta función toma un estado
 
@@ -54,22 +37,20 @@ def sucesor(estado: tuple, pv:bool) -> list:
     Devuelve:
     sucesores (Lista): lista de sucesores prometedores
     """
+    #se usa un vector para saber que reinas están desocupadas, o las columnas que no tienen reina
+    reinasDesocupadas = [2,3,4,5,6,7,8]
+    for i in estado:
+        if i in reinasDesocupadas:
+            reinasDesocupadas.remove(i)
+
     sucesores = []
-    # ciclo por cada reina
-        # reina choca con alguna otra reina
-            # no se agrega a la lista de sucesores
-        # reina no choca con ninguna otra reina
-            # se agrega a la lista de sucesores
-    if pv:
-        sucesores.append((1,0,0,0,0,0,0,0))
-        sucesores.append((0,1,0,0,0,0,0,0))
-        sucesores.append((0,0,1,0,0,0,0,0))
-        sucesores.append((0,0,0,1,0,0,0,0))
-        sucesores.append((0,0,0,0,1,0,0,0))
-        sucesores.append((0,0,0,0,0,1,0,0))
-        sucesores.append((0,0,0,0,0,0,1,0))
-        sucesores.append((0,0,0,0,0,0,0,1))
-    else:
+    if pv: #en caso de ser la primera iteraicon se mueve por filas la primera reina, pv = primeraVez
+        for i in range(len(estado)):
+            sucesor = list(estado)
+            sucesor[i] = 1
+            #print(f"-Sucesor: {sucesor}")
+            sucesores.append(tuple(sucesor))
+    else: #ya que pasamos el primer vector se empieza a mover por columnas
         for i in range(len(estado)):
             if estado[i] == 0:
                 for j in reinasDesocupadas:
@@ -81,10 +62,7 @@ def sucesor(estado: tuple, pv:bool) -> list:
 
     return sucesores
 
-def objetivo(estado: tuple) -> bool:
-    return True
-
-def estadoObjetivo(estado):
+def objetivo(estado):
     """
     Esta función toma un estado
 
@@ -94,6 +72,7 @@ def estadoObjetivo(estado):
     Devuelve:
     bool: True si el estado es el objetivo, False si no
     """
+    #solo se cuenta el numero de ceros que tiene el estado, si no hay ceros es que ya se llegó al estado objetivo
     contador = 0
     for e in estado:
         if e == 0:
@@ -102,6 +81,7 @@ def estadoObjetivo(estado):
         return True
     else:
         return False
+
 def depth_first(initial_state: tuple) -> list:
     visited = []
     stack = []
@@ -110,26 +90,81 @@ def depth_first(initial_state: tuple) -> list:
     #while len(stack) > 0:
     while stack != []:
         visited = stack[-1]
-        if estadoObjetivo(visited):
-            print(f"Se llegó al estado objetivo {visited}")
+        if objetivo(visited):
+            #print(f"Se llegó al estado objetivo {visited}")
             return visited
         else:
             successors = sucesor(visited,primeraVez) # los prometedores sucesores
-            print(f"-Sucesores: {successors}")
+            #print(f"-Sucesores: {successors}")
+            mostrarLiFo.config(state="normal")
+            mostrarLiFo.insert(tk.INSERT, f"-Sucesores: {successors}\n")
             for i in successors:
                 stack.append(i)
-            print(f"-Stack: {stack}")
+            #print(f"-Stack: {stack}")
+            mostrarLiFo.insert(tk.INSERT, f"-Stack: {stack}\n")
+            mostrarLiFo.config(state="disabled")
             #eliminar el elemento visited
+            
             stack.remove(visited)
             primeraVez = False
 
 def main():
-    reina = 1
+
     initial_state = (0,0,0,0,0,0,0,0)
-    #print(initial_state)
-    #print(sucesor(initial_state,False))
-    #print(estadoObjetivo((1,2,3,4,5,6,7,0)))
+    cajaEstadoini.config(state="normal")
+    cajaEstadoini.insert(tk.END, initial_state)
+    cajaEstadoini.config(state="disabled")
     print(depth_first(initial_state))
 
 if __name__ == "__main__":
-    main()
+    #aqui se implementa la interfaz gráfica
+    import tkinter as tk
+    from tkinter import messagebox
+    from tkinter import scrolledtext
+    def main():
+
+        initial_state = (0,0,0,0,0,0,0,0)
+        #print(initial_state)
+        #print(sucesor(initial_state,False))
+        #print(estadoObjetivo((1,2,3,4,5,6,7,0)))
+        messagebox.showinfo("Solución",depth_first(initial_state))
+
+    root = tk.Tk()
+    root.title("Problema de las 8 reinas")
+    root.geometry("825x460")
+    #bloquear tamaño de la ventana
+    root.resizable(0,0)
+    
+    button = tk.Button(root, text="Iniciar", command=main)
+    button.place(x=20,y=3)
+
+    # Crear un Frame que contendrá la caja de texto y la barra de desplazamiento
+    frame_contenedor = tk.Frame(root)
+    frame_contenedor.pack()
+    frame_contenedor.config(width=55, height=10)
+    frame_contenedor.place(x=19,y=32)
+
+    # Crear una caja de texto con barras de desplazamiento vertical
+    mostrarLiFo = scrolledtext.ScrolledText(frame_contenedor, height=25, width=97, state="disabled", wrap=tk.NONE)
+    mostrarLiFo.pack(side="left", fill="both", expand=True)
+
+    # Crear una barra de desplazamiento horizontal
+    scrollbar_horizontal = tk.Scrollbar(frame_contenedor, orient=tk.HORIZONTAL, command=mostrarLiFo.xview)
+    scrollbar_horizontal.place(x=0, y=388, relwidth=.98, height=20)
+
+    # Configurar la caja de texto para desplazarse horizontalmente
+    mostrarLiFo.config(xscrollcommand=scrollbar_horizontal.set)
+
+    cajaEstadoini= tk.Text(root, height=1, width=25, state="disabled")#caja para numero de grupos 
+    cajaEstadoini.place(x=180,y=3)
+
+    initial_state = (0,0,0,0,0,0,0,0)
+    cajaEstadoini.config(state="normal")
+    cajaEstadoini.insert(tk.END, f"{initial_state}")
+    cajaEstadoini.config(state="disabled")
+
+    labelEstadoIni = tk.Label(root, text="Estado inicial:")
+    labelEstadoIni.place(x=100,y=3)
+
+    root.mainloop()
+    
